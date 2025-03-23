@@ -1,70 +1,53 @@
-﻿<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EAN-13 Barcode Scanner GS1 UA</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 20px;
-            text-align: center;
-        }
-        #reader {
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        #result {
-            font-size: 1.2em;
-            margin-top: 15px;
-            word-break: break-all;
-        }
-        #scan-btn {
-            padding: 10px 20px;
-            font-size: 1em;
-            margin-top: 15px;
-        }
-    </style>
-</head>
 <body>
     <h2>EAN-13 Barcode Scanner (GS1 Україна)</h2>
     <div id="reader"></div>
     <button id="scan-btn">Сканувати штрих-код</button>
+    
     <h3>Результат сканування:</h3>
     <div id="result">Очікування сканування...</div>
 
+    <!-- завчасно створені кнопки (початково приховані) -->
+    <button id="copy-btn" style="display:none;">📋 Копіювати код</button>
+    <button id="search-btn" style="display:none;">🔎 Перевірити GS1 UA</button>
 
     <script>
-const html5QrCode = new Html5Qrcode("reader");
-const qrConfig = { fps: 10, qrbox: { width: 250, height: 150 } };
+        const html5QrCode = new Html5Qrcode("reader");
+        const qrConfig = { fps: 10, qrbox: { width: 250, height: 150 } };
 
-let lastDecodedText = "";
+        let lastDecodedText = "";
 
-async function copyToClipboard(text) {
-    try {
-        await navigator.clipboard.writeText(text);
-        alert(`EAN-13 код скопійовано в буфер: ${text}`);
-    } catch (err) {
-        alert('Помилка копіювання в буфер обміну: ' + err);
-    }
-}
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                alert(`EAN-13 код скопійовано в буфер: ${text}`);
+            } catch (err) {
+                alert('Помилка копіювання в буфер обміну: ' + err);
+            }
+        }
 
-function searchGS1UA(ean13) {
-    window.open(`https://newgepir.gs1ua.org/search/gtin/${ean13}`, '_blank');
-}
+        function searchGS1UA(ean13) {
+            window.open(`https://newgepir.gs1ua.org/search/gtin/${ean13}`, '_blank');
+        }
 
-document.getElementById("scan-btn").addEventListener("click", () => {
-    html5QrCode.start({ facingMode: "environment" }, qrConfig, (decodedText) => {
-        lastDecodedText = decodedText;
-        document.getElementById("result").innerHTML = `
-            Розпізнаний код: <strong>${decodedText}</strong><br>
-            <button id="copy-btn">Копіювати код</button>
-            <button id="search-btn">Перевірити GS1 UA</button>
-        `;
-        html5QrCode.stop();
+        document.getElementById("scan-btn").addEventListener("click", () => {
+            document.getElementById("copy-btn").style.display = "none";
+            document.getElementById("search-btn").style.display = "none";
+            document.getElementById("result").innerText = "Сканування...";
 
+            html5QrCode.start({ facingMode: "environment" }, qrConfig, (decodedText) => {
+                lastDecodedText = decodedText;
+                html5QrCode.stop();
+                document.getElementById("result").innerHTML = `Розпізнаний код: <strong>${decodedText}</strong>`;
+                
+                // Показуємо кнопки після розпізнавання
+                document.getElementById("copy-btn").style.display = "inline-block";
+                document.getElementById("search-btn").style.display = "inline-block";
+            }).catch(err => {
+                document.getElementById("result").innerText = `Помилка запуску сканера: ${err}`;
+            });
+        });
+
+        // Явні обробники кнопок
         document.getElementById("copy-btn").addEventListener("click", () => {
             copyToClipboard(lastDecodedText);
         });
@@ -72,10 +55,5 @@ document.getElementById("scan-btn").addEventListener("click", () => {
         document.getElementById("search-btn").addEventListener("click", () => {
             searchGS1UA(lastDecodedText);
         });
-    }).catch(err => {
-        document.getElementById("result").innerText = `Помилка запуску сканера: ${err}`;
-    });
-});
     </script>
 </body>
-</html>
