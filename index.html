@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="uk">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -54,7 +53,6 @@
         }
     </style>
 </head>
-
 <body>
     <h2>EAN-13 Barcode Scanner (GS1 Україна)</h2>
 
@@ -76,7 +74,7 @@
         };
         let lastDecodedText = "";
 
-        // Запуск камери та автоматичне розпізнавання коду
+        // Запуск камери з автоматичним розпізнаванням
         document.getElementById("start-camera-btn").onclick = () => {
             html5QrCode.start({ facingMode: "environment" }, qrConfig, (decodedText) => {
                 lastDecodedText = decodedText;
@@ -108,12 +106,11 @@
             });
         };
 
-        // Відкриття сайту GS1 для перевірки коду
+        // Відкриття сторінки GS1 (виправлена версія!)
         document.getElementById("gs1-btn").onclick = () => {
-            window.open("https://gepir.gs1ua.org/search/gtin", "_blank");
+            window.open("https://gepir.gs1ua.org/search/gtin", "_blank", "noopener,noreferrer");
             alert("✅ Вставте скопійований код у форму пошуку на сайті GS1.");
         };
     </script>
 </body>
-
 </html>
