@@ -1,59 +1,87 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EAN-13 Barcode Scanner (GS1 Україна)</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f7;
+        }
+
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            margin: 15px auto;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        #reader video {
+            width: 100% !important;
+            height: auto !important;
+            object-fit: cover;
+        }
+
+        #result {
+            font-size: 1.2em;
+            margin-top: 15px;
+            word-break: break-all;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            margin-top: 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background-color: #007aff;
+            color: white;
+        }
+
+        button:active {
+            background-color: #005bb5;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
 <body>
     <h2>EAN-13 Barcode Scanner (GS1 Україна)</h2>
-    <div id="reader"></div>
-    <button id="scan-btn">Сканувати штрих-код</button>
-    
-    <h3>Результат сканування:</h3>
-    <div id="result">Очікування сканування...</div>
 
-    <!-- завчасно створені кнопки (початково приховані) -->
-    <button id="copy-btn" style="display:none;">📋 Копіювати код</button>
-    <button id="search-btn" style="display:none;">🔎 Перевірити GS1 UA</button>
+    <button id="start-camera-btn">📷 Запустити камеру</button>
+    <button id="scan-btn" class="hidden">📡 Розпізнати штрих-код</button>
+
+    <div id="reader"></div>
+
+    <h3>Результат сканування:</h3>
+    <div id="result">Камера не запущена.</div>
+
+    <button id="copy-btn" class="hidden">📋 Копіювати код</button>
+    <button id="gs1-btn" class="hidden">🔎 Перевірити в GS1</button>
 
     <script>
         const html5QrCode = new Html5Qrcode("reader");
         const qrConfig = { fps: 10, qrbox: { width: 250, height: 150 } };
-
         let lastDecodedText = "";
 
-        async function copyToClipboard(text) {
-            try {
-                await navigator.clipboard.writeText(text);
-                alert(`EAN-13 код скопійовано в буфер: ${text}`);
-            } catch (err) {
-                alert('Помилка копіювання в буфер обміну: ' + err);
-            }
-        }
-
-        function searchGS1UA(ean13) {
-            window.open(`https://newgepir.gs1ua.org/search/gtin/${ean13}`, '_blank');
-        }
-
-        document.getElementById("scan-btn").addEventListener("click", () => {
-            document.getElementById("copy-btn").style.display = "none";
-            document.getElementById("search-btn").style.display = "none";
-            document.getElementById("result").innerText = "Сканування...";
-
-            html5QrCode.start({ facingMode: "environment" }, qrConfig, (decodedText) => {
-                lastDecodedText = decodedText;
-                html5QrCode.stop();
-                document.getElementById("result").innerHTML = `Розпізнаний код: <strong>${decodedText}</strong>`;
-                
-                // Показуємо кнопки після розпізнавання
-                document.getElementById("copy-btn").style.display = "inline-block";
-                document.getElementById("search-btn").style.display = "inline-block";
+        document.getElementById("start-camera-btn").onclick = () => {
+            html5QrCode.start({ facingMode: "environment" }, qrConfig).then(() => {
+                document.getElementById("result").innerText = "Камеру запущено. Наведіть камеру на штрих-код.";
+                document.getElementById("scan-btn").classList.remove("hidden");
+                document.getElementById("start-camera-btn").classList.add("hidden");
             }).catch(err => {
-                document.getElementById("result").innerText = `Помилка запуску сканера: ${err}`;
+                document.getElementById("result").innerText = `Помилка запуску камери: ${err}`;
             });
-        });
+        };
 
-        // Явні обробники кнопок
-        document.getElementById("copy-btn").addEventListener("click", () => {
-            copyToClipboard(lastDecodedText);
-        });
-
-        document.getElementById("search-btn").addEventListener("click", () => {
-            searchGS1UA(lastDecodedText);
-        });
-    </script>
-</body>
+        document.getElementById("scan-btn").onclick = () => {
+            html5QrCode.scan().then(decodedText => {
+                lastDecodedText = decodedText;
