@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -53,11 +54,11 @@
         }
     </style>
 </head>
+
 <body>
     <h2>EAN-13 Barcode Scanner (GS1 Україна)</h2>
 
     <button id="start-camera-btn">📷 Запустити камеру</button>
-    <button id="scan-btn" class="hidden">📡 Розпізнати штрих-код</button>
 
     <div id="reader"></div>
 
@@ -69,19 +70,50 @@
 
     <script>
         const html5QrCode = new Html5Qrcode("reader");
-        const qrConfig = { fps: 10, qrbox: { width: 250, height: 150 } };
+        const qrConfig = {
+            fps: 10,
+            qrbox: { width: 250, height: 150 }
+        };
         let lastDecodedText = "";
 
+        // Запуск камери та автоматичне розпізнавання коду
         document.getElementById("start-camera-btn").onclick = () => {
-            html5QrCode.start({ facingMode: "environment" }, qrConfig).then(() => {
+            html5QrCode.start({ facingMode: "environment" }, qrConfig, (decodedText) => {
+                lastDecodedText = decodedText;
+                html5QrCode.stop().then(() => {
+                    document.getElementById("result").innerHTML = `✅ Розпізнаний код: <strong>${decodedText}</strong>`;
+                    document.getElementById("copy-btn").classList.remove("hidden");
+                    document.getElementById("gs1-btn").classList.remove("hidden");
+                    document.getElementById("start-camera-btn").classList.remove("hidden");
+                    document.getElementById("start-camera-btn").innerText = "📷 Запустити камеру знову";
+                }).catch(err => {
+                    document.getElementById("result").innerText = `Помилка зупинки камери: ${err}`;
+                });
+            }).then(() => {
                 document.getElementById("result").innerText = "Камеру запущено. Наведіть камеру на штрих-код.";
-                document.getElementById("scan-btn").classList.remove("hidden");
+                document.getElementById("copy-btn").classList.add("hidden");
+                document.getElementById("gs1-btn").classList.add("hidden");
                 document.getElementById("start-camera-btn").classList.add("hidden");
             }).catch(err => {
                 document.getElementById("result").innerText = `Помилка запуску камери: ${err}`;
             });
         };
 
-        document.getElementById("scan-btn").onclick = () => {
-            html5QrCode.scan().then(decodedText => {
-                lastDecodedText = decodedText;
+        // Копіювання коду в буфер обміну
+        document.getElementById("copy-btn").onclick = () => {
+            navigator.clipboard.writeText(lastDecodedText).then(() => {
+                alert(`✅ Код ${lastDecodedText} успішно скопійовано в буфер обміну.`);
+            }).catch(err => {
+                alert(`Помилка копіювання: ${err}`);
+            });
+        };
+
+        // Відкриття сайту GS1 для перевірки коду
+        document.getElementById("gs1-btn").onclick = () => {
+            window.open("https://gepir.gs1ua.org/search/gtin", "_blank");
+            alert("✅ Вставте скопійований код у форму пошуку на сайті GS1.");
+        };
+    </script>
+</body>
+
+</html>
