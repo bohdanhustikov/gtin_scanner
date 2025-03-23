@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EAN-13 Barcode Scanner GS1 UA</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        #result {
+            font-size: 1.2em;
+            margin-top: 15px;
+            word-break: break-all;
+        }
+        #scan-btn {
+            padding: 10px 20px;
+            font-size: 1em;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h2>EAN-13 Barcode Scanner (GS1 Україна)</h2>
+    <div id="reader"></div>
+    <button id="scan-btn">Сканувати штрих-код</button>
+    <h3>Результат сканування:</h3>
+    <div id="result">Очікування сканування...</div>
+
+
+    <script>
+        const html5QrCode = new Html5Qrcode("reader");
+        const qrConfig = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                alert(`EAN-13 код скопійовано в буфер: ${text}`);
+            } catch (err) {
+                alert('Помилка копіювання в буфер обміну: ' + err);
+            }
+        }
+
+
+        function searchGS1UA(ean13) {
+            window.open(`https://newgepir.gs1ua.org/search/gtin/${ean13}`, '_blank');
+        }
+
+
+        document.getElementById("scan-btn").addEventListener("click", () => {
+            html5QrCode.start({ facingMode: "environment" }, qrConfig, (decodedText) => {
+                document.getElementById("result").innerText = decodedText;
+                copyToClipboard(decodedText);
+                searchGS1UA(decodedText);
+                html5QrCode.stop();
+            }).catch(err => {
+                document.getElementById("result").innerText = `Помилка запуску сканера: ${err}`;
+            });
+        });
+    </script>
+</body>
+</html>
