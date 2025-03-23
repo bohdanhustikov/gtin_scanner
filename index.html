@@ -37,35 +37,45 @@
 
 
     <script>
-        const html5QrCode = new Html5Qrcode("reader");
-        const qrConfig = { fps: 10, qrbox: { width: 250, height: 150 } };
+const html5QrCode = new Html5Qrcode("reader");
+const qrConfig = { fps: 10, qrbox: { width: 250, height: 150 } };
 
+let lastDecodedText = "";
 
-        async function copyToClipboard(text) {
-            try {
-                await navigator.clipboard.writeText(text);
-                alert(`EAN-13 код скопійовано в буфер: ${text}`);
-            } catch (err) {
-                alert('Помилка копіювання в буфер обміну: ' + err);
-            }
-        }
+async function copyToClipboard(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        alert(`EAN-13 код скопійовано в буфер: ${text}`);
+    } catch (err) {
+        alert('Помилка копіювання в буфер обміну: ' + err);
+    }
+}
 
+function searchGS1UA(ean13) {
+    window.open(`https://newgepir.gs1ua.org/search/gtin/${ean13}`, '_blank');
+}
 
-        function searchGS1UA(ean13) {
-            window.open(`https://newgepir.gs1ua.org/search/gtin/${ean13}`, '_blank');
-        }
+document.getElementById("scan-btn").addEventListener("click", () => {
+    html5QrCode.start({ facingMode: "environment" }, qrConfig, (decodedText) => {
+        lastDecodedText = decodedText;
+        document.getElementById("result").innerHTML = `
+            Розпізнаний код: <strong>${decodedText}</strong><br>
+            <button id="copy-btn">Копіювати код</button>
+            <button id="search-btn">Перевірити GS1 UA</button>
+        `;
+        html5QrCode.stop();
 
-
-        document.getElementById("scan-btn").addEventListener("click", () => {
-            html5QrCode.start({ facingMode: "environment" }, qrConfig, (decodedText) => {
-                document.getElementById("result").innerText = decodedText;
-                copyToClipboard(decodedText);
-                searchGS1UA(decodedText);
-                html5QrCode.stop();
-            }).catch(err => {
-                document.getElementById("result").innerText = `Помилка запуску сканера: ${err}`;
-            });
+        document.getElementById("copy-btn").addEventListener("click", () => {
+            copyToClipboard(lastDecodedText);
         });
+
+        document.getElementById("search-btn").addEventListener("click", () => {
+            searchGS1UA(lastDecodedText);
+        });
+    }).catch(err => {
+        document.getElementById("result").innerText = `Помилка запуску сканера: ${err}`;
+    });
+});
     </script>
 </body>
 </html>
